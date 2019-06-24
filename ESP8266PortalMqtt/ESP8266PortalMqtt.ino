@@ -24,6 +24,8 @@ SOFTWARE.
 #include "mqtt.h"
 #include "ota.h"
 
+// include here all required files
+
 void setup() {
 #if defined(DEBUG) || defined(DEBUG_ESP_PORT)
     Serial.begin(115200);
@@ -34,6 +36,8 @@ void setup() {
         mqttSetup();
         wifiSetup();
         otaSetup();
+
+        // call here custom setup, ie. of sensors
 
     } else {
         while (1) {};
@@ -46,8 +50,12 @@ void loop() {
     if (!ota_in_progess) {
         wifiManager.process();
 
+        // call here custom loop, ie. of button (button has precedence over wifi, sensors, etc.)
+
         if (WiFi.isConnected()) {
             mqttLoop();
+
+            // call here custom loop, ie. of sensors
         }
     }
 
