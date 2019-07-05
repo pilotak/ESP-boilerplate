@@ -17,12 +17,20 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+#if defined(NTP_SUPPORT) || defined(HAS_RTC)
+    #include <Timezone.h>
+#endif
 
 #include "const.h"
 #include "load.h"
 #include "wifi.h"
 #include "mqtt.h"
 #include "ota.h"
+#include "button.h"
+
+#if defined(NTP_SUPPORT) || defined(HAS_RTC)
+    #include "clock.h"
+#endif
 
 // include here all required files
 
@@ -33,9 +41,14 @@ void setup() {
 #endif
 
     if (loadDefaultConfig()) {
+        buttonSetup();
         mqttSetup();
         wifiSetup();
         otaSetup();
+
+#if defined(NTP_SUPPORT) || defined(HAS_RTC)
+        setupTime();
+#endif
 
         // call here custom setup, ie. of sensors
 
@@ -49,11 +62,13 @@ void loop() {
 
     if (!ota_in_progess) {
         wifiManager.process();
-
-        // call here custom loop, ie. of button (button has precedence over wifi, sensors, etc.)
+        buttonLoop();
 
         if (WiFi.isConnected()) {
             mqttLoop();
+#if defined(NTP_SUPPORT) || defined(HAS_RTC)
+            timeLoop();
+#endif
 
             // call here custom loop, ie. of sensors
         }

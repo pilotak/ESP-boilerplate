@@ -61,7 +61,6 @@ class IntParameter : public WiFiManagerParameter {
 };
 
 // mqtt.h
-#include <ESP8266WiFi.h>
 #include <AsyncMqttClient.h>
 #include <Ticker.h>
 
@@ -104,3 +103,28 @@ WiFiManagerParameter custom_mqtt_password("mqtt_password", "MQTT password", mqtt
 #endif
 
 bool ota_in_progess = false;
+
+// button.h
+#include <JC_Button.h>
+Button button(BUTTON_PIN);
+
+// clock.h
+#if defined(NTP_SUPPORT) || defined(HAS_RTC)
+    #include <Wire.h>
+    #include "TimeLib.h"
+
+    time_t current_time = 0;
+    Timezone myTZ(summerTime, standardTime);
+    TimeChangeRule *tcr;
+
+    #if defined(NTP_SUPPORT)
+        #include "NtpClientLib.h"
+        bool trigger_ntp_event = false;
+        NTPSyncEvent_t ntpEvent;
+    #endif
+
+    #if defined(HAS_RTC)
+        #include "DS3232RTC.h"
+        DS3232RTC RTC(false);
+    #endif
+#endif

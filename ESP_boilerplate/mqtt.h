@@ -33,7 +33,7 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
     Serial.println();
 #endif
 
-   if (strcmp(topic, MQTT_UPGRADE_TOPIC) == 0 && len >= 4) {
+    if (strcmp(topic, MQTT_UPGRADE_TOPIC) == 0 && len >= 4) {
 #if defined(HTTP_OTA)
 
         if (len > sizeof(http_ota_url)) {
@@ -49,6 +49,14 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
 
     } else if (strcmp(topic, MQTT_RESTART_TOPIC) == 0) {
         wifiManager.reboot();
+
+    } else if (strcmp(topic, MQTT_NTP_TOPIC) == 0) {
+#if defined(NTP_SUPPORT)
+#if defined(DEBUG)
+        Serial.println("[TIME] Getting new NTP time");
+#endif
+        NTP.getTime();
+#endif
     }
 }
 
@@ -70,12 +78,12 @@ void onMqttConnect(bool sessionPresent) {
 
     mqtt.subscribe(MQTT_RESTART_TOPIC, MQTT_QOS);
 
-#if defined(SENSOR_BMP280)
-    mqtt.subscribe(MQTT_HEIGHT_UPDATE_TOPIC, MQTT_QOS);
-#endif
-
 #if defined(HTTP_OTA)
     mqtt.subscribe(MQTT_UPGRADE_TOPIC, MQTT_QOS);
+#endif
+
+#if defined(NTP_SUPPORT)
+    mqtt.subscribe(MQTT_NTP_TOPIC, MQTT_QOS);
 #endif
 
     sendStatus();
