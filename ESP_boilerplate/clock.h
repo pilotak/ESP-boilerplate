@@ -66,11 +66,11 @@ void setupTime() {
         printDigits(minute());
         Serial.print(":");
         printDigits(second());
-        Serial.print(".");
+        Serial.print(" ");
         printDigits(day());
-        Serial.print(".");
+        Serial.print("/");
         printDigits(month());
-        Serial.print(".");
+        Serial.print("/");
         Serial.print(year());
         Serial.println();
 #endif
