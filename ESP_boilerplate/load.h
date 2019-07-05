@@ -126,5 +126,6 @@ Button button(BUTTON_PIN);
     #if defined(HAS_RTC)
         #include "DS3232RTC.h"
         DS3232RTC RTC(false);
+        bool rtc_ok = false;
     #endif
 #endif

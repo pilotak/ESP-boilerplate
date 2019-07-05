@@ -5,19 +5,20 @@ void processNtpEvent(NTPSyncEvent_t ntpEvent) {
 #if defined(HAS_RTC)
         RTC.set(last_time);
 
-        if (NTP.getInterval() > 0 && RTC.get() >= last_time) {
+        if (!rtc_ok && RTC.get() >= last_time) {
 #if defined(DEBUG)
-            Serial.println("[TIME] RTC is working, using as deafult sync provider");
+            Serial.println("[TIME] RTC is working, will use it as default sync provider");
 #endif
-            NTP.setInterval(0);
-            setSyncProvider(RTC.get);
+            NTP.stop();
+            rtc_ok = true;
             setSyncInterval(TIME_SYNC_INTERVAL);
+            setSyncProvider(RTC.get);
         }
 
 #endif
 #if defined(DEBUG)
         Serial.print("[TIME] Got new NTP time: ");
-        Serial.println(NTP.getTimeDateString(last_time));
+        Serial.println(NTP.getTimeDateString(myTZ.toLocal(last_time, &tcr)));
 #endif
     }
 }
@@ -35,46 +36,40 @@ void printDigits(int digits) {
 
 void setupTime() {
 #if defined(HAS_RTC)
-    bool rtc_set = true;
-    Wire.begin(SDA_pin, SCL_pin);
+    Wire.begin(SDA_PIN, SCL_PIN);
     setSyncProvider(RTC.get);
     setSyncInterval(TIME_SYNC_INTERVAL);
 
     if (timeStatus() != timeSet) {
+        rtc_ok = false;
+
 #if defined(DEBUG)
         Serial.println("[TIME] Unable to sync with the RTC");
 #endif
 
-#if defined(NTP_SUPPORT)
-#if defined(DEBUG)
-        Serial.println("[TIME] Fallback to NTP sync");
-#endif
-        setSyncProvider(NULL);
-        setSyncInterval(0);
-        NTP.setInterval(TIME_SYNC_INTERVAL);
-        rtc_set = false;
-#else
+#if !defined(NTP_SUPPORT)
 
         while (1) {}
 
 #endif
 
     } else {
-        current_time = myTZ.toLocal(now(), &tcr);
+        time_t current_time = myTZ.toLocal(now(), &tcr);
+        rtc_ok = true;
 
 #if defined(DEBUG)
         Serial.print("[TIME] System time synchronized - ");
-        Serial.print(hour());
+        Serial.print(hour(current_time));
         Serial.print(":");
-        printDigits(minute());
+        printDigits(minute(current_time));
         Serial.print(":");
-        printDigits(second());
+        printDigits(second(current_time));
         Serial.print(" ");
         printDigits(day());
         Serial.print("/");
-        printDigits(month());
+        printDigits(month(current_time));
         Serial.print("/");
-        Serial.print(year());
+        Serial.print(year(current_time));
         Serial.println();
 #endif
     }
@@ -87,13 +82,8 @@ void setupTime() {
         trigger_ntp_event = true;
     });
 
-#if defined(HAS_RTC)
-    NTP.setInterval(rtc_set ? 0 : TIME_SYNC_INTERVAL);
-#else
     NTP.setInterval(TIME_SYNC_INTERVAL);
-#endif
-
-    NTP.begin(NTP_SERVER_NAME);
+    NTP.begin(NTP_SERVER_NAME);  // overrides setSyncProvider
 #endif
 }
 

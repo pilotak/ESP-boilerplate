@@ -33,5 +33,5 @@ TimeChangeRule summerTime = {"CEST", Last, Sun, Mar, 2, 120};    // UTC + 2 hour
 TimeChangeRule standardTime = {"CET", Last, Sun, Oct, 2, 60};    // UTC + 1 hour
 #endif
 
-#define SDA_pin SDA
-#define SCL_pin SCL
+#define SDA_PIN SDA
+#define SCL_PIN SCL
