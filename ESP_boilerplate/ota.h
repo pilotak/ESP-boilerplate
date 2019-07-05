@@ -10,10 +10,6 @@ void otaSetup() {
             Serial.println("[NoFUSS] Starting");
 #endif
             ota_in_progess = true;
-#if defined(HAS_METERS)
-            attachInterrupt(digitalPinToInterrupt(ANEMOMETER_PIN), NULL, FALLING);
-            attachInterrupt(digitalPinToInterrupt(RAIN_GAUGE_PIN), NULL, FALLING);
-#endif
         }
 
 #if defined(DEBUG)

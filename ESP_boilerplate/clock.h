@@ -5,7 +5,10 @@ void processNtpEvent(NTPSyncEvent_t ntpEvent) {
 #if defined(HAS_RTC)
         RTC.set(last_time);
 
-        if (RTC.get() >= last_time) {
+        if (NTP.getInterval() > 0 && RTC.get() >= last_time) {
+#if defined(DEBUG)
+            Serial.println("[TIME] RTC is working, using as deafult sync provider");
+#endif
             NTP.setInterval(0);
             setSyncProvider(RTC.get);
             setSyncInterval(TIME_SYNC_INTERVAL);
