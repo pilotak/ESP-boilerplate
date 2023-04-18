@@ -2,7 +2,7 @@ void buttonLoop() {
     button.read();
 
     if (button.pressedFor(LONG_PRESS)) {
-        startConfigPortal();
+        // TODO
     }
 }
 

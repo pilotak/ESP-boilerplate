@@ -5,7 +5,7 @@ void sendStatus() {
 
         json["status"] = MQTT_STATUS_ALIVE;
         json["ip"] = WiFi.localIP().toString();
-        json["signal"] = wifiManager.getRSSIasQuality(WiFi.RSSI());
+        json["signal"] = getRSSIasQuality(WiFi.RSSI());
         json["fw_ver"] = FW_VERSION;
 
         uint32_t len = serializeJson(json, message, sizeof(message));
@@ -20,7 +20,8 @@ void sendStatus() {
     }
 }
 
-void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
+void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index,
+                   size_t total) {
 #if defined(DEBUG)
     Serial.print("[MQTT] Message arrived [");
     Serial.print(topic);
@@ -48,24 +49,16 @@ void onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties 
 #endif
 
     } else if (strcmp(topic, MQTT_RESTART_TOPIC) == 0) {
-        wifiManager.reboot();
-
-    } else if (strcmp(topic, MQTT_NTP_TOPIC) == 0) {
-#if defined(NTP_SUPPORT)
-#if defined(DEBUG)
-        Serial.println("[TIME] Getting new NTP time");
-#endif
-        NTP.getTime();
-#endif
+        ESP.restart();
     }
 }
 
 void connectToMqtt() {
 #if defined(DEBUG)
     Serial.print("[MQTT] Connecting to: ");
-    Serial.print(mqtt_server);
+    Serial.print(MQTT_SERVER);
     Serial.print(":");
-    Serial.println(mqtt_port);
+    Serial.println(MQTT_PORT);
 #endif
 
     mqtt.connect();
@@ -113,16 +106,17 @@ void mqttSetup() {
 
     IPAddress ip;
 
-    if (ip.fromString(mqtt_server)) {  // check if server is IP address or hostname
-        mqtt.setServer(ip, mqtt_port);
+    if (ip.fromString(MQTT_SERVER)) {  // check if server is IP address or hostname
+        mqtt.setServer(ip, MQTT_PORT);
 
     } else {
-        mqtt.setServer(mqtt_server, mqtt_port);
+        mqtt.setServer(MQTT_SERVER, MQTT_PORT);
     }
 
+    char will[40];
     snprintf(will, sizeof(will), "{\"status\": %i}", MQTT_STATUS_DEAD);
 
-    mqtt.setCredentials(mqtt_user, mqtt_password);
+    mqtt.setCredentials(MQTT_USER, MQTT_PASSWORD);
     mqtt.setWill(MQTT_STATUS_TOPIC, MQTT_QOS, MQTT_RETAIN, will, strlen(will));
     mqtt.setKeepAlive((MQTT_STATUS_INTERVAL / 1000) + 2);  // converts ms->s + 2 sec extra, in case we have a delay
     mqtt.onConnect(onMqttConnect);

@@ -17,9 +17,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#if defined(NTP_SUPPORT) || defined(HAS_RTC)
-    #include <Timezone.h>
-#endif
 
 #include "const.h"
 #include "load.h"
@@ -27,10 +24,6 @@ SOFTWARE.
 #include "mqtt.h"
 #include "ota.h"
 #include "button.h"
-
-#if defined(NTP_SUPPORT) || defined(HAS_RTC)
-    #include "clock.h"
-#endif
 
 // include here all required files
 
@@ -40,35 +33,25 @@ void setup() {
     Serial.println();
 #endif
 
-    if (loadDefaultConfig()) {
-        buttonSetup();
-        mqttSetup();
-        wifiSetup();
-        otaSetup();
+    buttonSetup();
+    mqttSetup();
+    wifiSetup();
 
-#if defined(NTP_SUPPORT) || defined(HAS_RTC)
-        setupTime();
+#if defined(ARDUINO_OTA)
+    otaSetup();
 #endif
 
-        // call here custom setup, ie. of sensors
-
-    } else {
-        while (1) {};
-    }
+    // call here custom setup, ie. of sensors
 }
 
 void loop() {
     otaLoop();
 
     if (!ota_in_progess) {
-        wifiManager.process();
         buttonLoop();
 
         if (WiFi.isConnected()) {
             mqttLoop();
-#if defined(NTP_SUPPORT) || defined(HAS_RTC)
-            timeLoop();
-#endif
 
             // call here custom loop, ie. of sensors
         }

@@ -1,73 +1,5 @@
-void otaSetup() {
-#if defined(NOFUSS_OTA)
-    NoFUSSClient.setServer(nofuss_server);
-    NoFUSSClient.setDevice(DEVICE_NAME);
-    NoFUSSClient.setVersion(FW_VERSION);
-
-    NoFUSSClient.onMessage([](nofuss_t code) {
-        if (code == NOFUSS_START) {
-#if defined(DEBUG)
-            Serial.println("[NoFUSS] Starting");
-#endif
-            ota_in_progess = true;
-        }
-
-#if defined(DEBUG)
-
-        if (code == NOFUSS_UPTODATE) {
-            Serial.println("[NoFUSS] Nothing for me");
-        }
-
-        if (code == NOFUSS_PARSE_ERROR) {
-            Serial.println("[NoFUSS] Error parsing server response");
-        }
-
-        if (code == NOFUSS_UPDATING) {
-            Serial.println("[NoFUSS] Updating");
-            Serial.print("         New version: ");
-            Serial.println(NoFUSSClient.getNewVersion().c_str());
-            Serial.print("         Firmware: ");
-            Serial.println(NoFUSSClient.getNewFirmware().c_str());
-            Serial.print("         File System: ");
-            Serial.println(NoFUSSClient.getNewFileSystem().c_str());
-        }
-
-        if (code == NOFUSS_FILESYSTEM_UPDATE_ERROR) {
-            Serial.print("[NoFUSS] File System Update Error: ");
-            Serial.println(NoFUSSClient.getErrorString().c_str());
-        }
-
-        if (code == NOFUSS_FILESYSTEM_UPDATED) {
-            Serial.println("[NoFUSS] File System Updated");
-        }
-
-        if (code == NOFUSS_FIRMWARE_UPDATE_ERROR) {
-            Serial.print("[NoFUSS] Firmware Update Error: ");
-            Serial.println(NoFUSSClient.getErrorString().c_str());
-        }
-
-        if (code == NOFUSS_FIRMWARE_UPDATED) {
-            Serial.println("[NoFUSS] Firmware Updated");
-        }
-
-        if (code == NOFUSS_RESET) {
-            Serial.println("[NoFUSS] Resetting board");
-        }
-
-#endif
-
-        if (code == NOFUSS_END) {
-#if defined(DEBUG)
-            Serial.println("[NoFUSS] End");
-#endif
-
-            ota_in_progess = false;
-        }
-    });
-#endif
-
 #if defined(ARDUINO_OTA)
-    ArduinoOTA.setPort(OTA_PORT);
+void otaSetup() {
     ArduinoOTA.setHostname(DEVICE_NAME);
 
     ArduinoOTA.onStart([]() {
@@ -122,25 +54,13 @@ void otaSetup() {
 
 
     ArduinoOTA.begin();
-#endif
+
 }
 
 void otaLoop() {
-#if defined(NOFUSS_OTA)
-    static uint32_t last_check = 0;
-
-    if (WiFi.status() != WL_CONNECTED) return;
-
-    if ((last_check > 0) && ((millis() - last_check) < NOFUSS_CHECK_INTERVAL)) return;
-
-    last_check = millis();
-    NoFUSSClient.handle();
-#endif
-
-#if defined(ARDUINO_OTA)
     ArduinoOTA.handle();
-#endif
 }
+#endif
 
 #if defined(HTTP_OTA)
 void httpUpdate() {
@@ -186,7 +106,7 @@ void httpUpdate() {
             Serial.println("[OTA] HTTP update: OK");
 #endif
 
-            wifiManager.reboot();
+            ESP.restart();
             break;
     }
 }
