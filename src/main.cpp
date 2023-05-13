@@ -1,6 +1,6 @@
 /*
 MIT License
-Copyright (c) 2019 Pavel Slama
+Copyright (c) 2023 Pavel Slama
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
@@ -17,68 +17,64 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-#if defined(NTP_SUPPORT) || defined(HAS_RTC)
-    #include <Timezone.h>
-#endif
 
+#include <Arduino.h>
 #include "const.h"
 #include "load.h"
-#include "wifi.h"
+#include "manager.h"
 #include "mqtt.h"
 #include "ota.h"
 #include "button.h"
 
-#if defined(NTP_SUPPORT) || defined(HAS_RTC)
-    #include "clock.h"
-#endif
-
 // include here all required files
 
 void setup() {
-#if defined(DEBUG) || defined(DEBUG_ESP_PORT)
+#if defined(DEBUG_ENABLED) || defined(DEBUG_ESP_PORT)
     Serial.begin(115200);
     Serial.println();
 #endif
 
-    if (loadDefaultConfig()) {
-        buttonSetup();
-        mqttSetup();
-        wifiSetup();
-        otaSetup();
+    buttonSetup();
+    wifiManager = new ESPAsync_WiFiManager_Lite();
+    mqttSetup();
+    wifiSetup();
 
-#if defined(NTP_SUPPORT) || defined(HAS_RTC)
-        setupTime();
+#if defined(ARDUINO_OTA)
+    otaSetup();
 #endif
 
-        // call here custom setup, ie. of sensors
-
-    } else {
-        while (1) {};
-    }
+    // call here custom setup, ie. of sensors
 }
 
 void loop() {
+    wifiManager->run();
+
+#if defined(ARDUINO_OTA)
     otaLoop();
+#endif
+
+#if defined(ARDUINO_OTA)
 
     if (!ota_in_progess) {
-        wifiManager.process();
+#endif
         buttonLoop();
 
         if (WiFi.isConnected()) {
             mqttLoop();
-#if defined(NTP_SUPPORT) || defined(HAS_RTC)
-            timeLoop();
-#endif
 
             // call here custom loop, ie. of sensors
         }
+
+#if defined(ARDUINO_OTA)
     }
+
+#endif
 
 #if defined(HTTP_OTA)
 
     if (do_http_update) {
         do_http_update = false;
-        httpUpdate();
+        httpOtaUpdate();
     }
 
 #endif
