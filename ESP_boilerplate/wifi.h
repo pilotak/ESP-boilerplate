@@ -15,7 +15,7 @@ uint8_t getRSSIasQuality(int RSSI) {
 }
 
 void onWifiConnect(const WiFiEventStationModeGotIP &event) {
-#if defined(DEBUG)
+#if defined(DEBUG_ENABLED)
     Serial.println("[WIFI] Connected");
     Serial.print("[WIFI] Local IP: ");
     Serial.println(WiFi.localIP());
@@ -25,7 +25,7 @@ void onWifiConnect(const WiFiEventStationModeGotIP &event) {
 }
 
 void onWifiDisconnect(const WiFiEventStationModeDisconnected &event) {
-#if defined(DEBUG)
+#if defined(DEBUG_ENABLED)
     Serial.println("[WIFI] Disconnected");
 #endif
     mqttReconnectTimer.detach();
@@ -34,22 +34,11 @@ void onWifiDisconnect(const WiFiEventStationModeDisconnected &event) {
 void wifiSetup() {
     wifiConnectHandler = WiFi.onStationModeGotIP(onWifiConnect);
 
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    String AP_SSID = CONFIG_PORTAL_SSID;
+    String AP_PWD  = CONFIG_PORTAL_PWD;
 
-#if defined(DEBUG)
-    Serial.print("[WIFI] Connecting to: ");
-    Serial.println(WIFI_SSID);
-#endif
-
-    while (WiFi.status() != WL_CONNECTED) {
-#if defined(DEBUG)
-        Serial.print('.');
-#endif
-        delay(500);
-    }
+    wifiManager->setConfigPortal(AP_SSID, AP_PWD);
+    wifiManager->begin();
 
     wifiDisconnectHandler = WiFi.onStationModeDisconnected(onWifiDisconnect);
-    WiFi.setAutoReconnect(true);
-    WiFi.persistent(true);
 }

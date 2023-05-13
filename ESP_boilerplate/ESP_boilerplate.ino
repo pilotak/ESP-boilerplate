@@ -1,6 +1,6 @@
 /*
 MIT License
-Copyright (c) 2019 Pavel Slama
+Copyright (c) 2023 Pavel Slama
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
@@ -28,12 +28,13 @@ SOFTWARE.
 // include here all required files
 
 void setup() {
-#if defined(DEBUG) || defined(DEBUG_ESP_PORT)
+#if defined(DEBUG_ENABLED) || defined(DEBUG_ESP_PORT)
     Serial.begin(115200);
     Serial.println();
 #endif
 
     buttonSetup();
+    wifiManager = new ESPAsync_WiFiManager_Lite();
     mqttSetup();
     wifiSetup();
 
@@ -45,6 +46,7 @@ void setup() {
 }
 
 void loop() {
+    wifiManager->run();
     otaLoop();
 
     if (!ota_in_progess) {

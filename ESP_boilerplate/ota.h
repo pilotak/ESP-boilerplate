@@ -1,22 +1,22 @@
 #if defined(ARDUINO_OTA)
 void otaSetup() {
-    ArduinoOTA.setHostname(DEVICE_NAME);
+    ArduinoOTA.setHostname(wifiManager->getBoardName().c_str());
 
     ArduinoOTA.onStart([]() {
-#if defined(DEBUG)
+#if defined(DEBUG_ENABLED)
         Serial.println("[OTA] Starting");
 #endif
         ota_in_progess = true;
     });
     ArduinoOTA.onEnd([]() {
-#if defined(DEBUG)
+#if defined(DEBUG_ENABLED)
         Serial.print("\n\e[0E");  // new line + move to the beginning of the current line
         Serial.println("[OTA] End");
         delay(200);
 #endif
     });
 
-#if defined(DEBUG)
+#if defined(DEBUG_ENABLED)
     ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
         Serial.print("\e[2K");  // clear line
         Serial.print("\e[0E");  // move to the beginning of the current line
@@ -28,7 +28,7 @@ void otaSetup() {
     ArduinoOTA.onError([](ota_error_t error) {
         ota_in_progess = false;
 
-#if defined(DEBUG)
+#if defined(DEBUG_ENABLED)
         Serial.print("\n\e[0E");  // new line + move to the beginning of the current line
         Serial.print("[OTA] Error: ");
         Serial.println(error);
@@ -65,13 +65,16 @@ void otaLoop() {
 #if defined(HTTP_OTA)
 void httpUpdate() {
     char msg[127];
+    char topic[64] = {0};
     uint32_t len = 0;
     ota_in_progess = true;
     WiFiClient client;
 
     ESPhttpUpdate.rebootOnUpdate(false);
+    snprintf(topic, sizeof(topic), "%s/%s/%s", wifiManager->getBoardName().c_str(), MQTT_UPGRADE_TOPIC,
+             MQTT_UPGRADE_STATUS_TOPIC);
 
-#if defined(DEBUG)
+#if defined(DEBUG_ENABLED)
     Serial.print("[OTA] Starting HTTP update from: ");
     Serial.println(http_ota_url);
 #endif
@@ -83,26 +86,28 @@ void httpUpdate() {
             ota_in_progess = false;
 
             len = snprintf(msg, sizeof(msg), "%s", ESPhttpUpdate.getLastErrorString().c_str());
-            mqtt.publish(MQTT_UPGRADE_STATUS_TOPIC, MQTT_QOS, false, msg, len);
 
-#if defined(DEBUG)
-            Serial.printf("[OTA] HTTP update failed: (%d): %s\r\n", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
+            mqtt.publish(topic, MQTT_QOS, false, msg, len);
+
+#if defined(DEBUG_ENABLED)
+            Serial.printf("[OTA] HTTP update failed: (%d): %s\r\n", ESPhttpUpdate.getLastError(),
+                          ESPhttpUpdate.getLastErrorString().c_str());
 #endif
             break;
 
         case HTTP_UPDATE_NO_UPDATES:
             ota_in_progess = false;
-            mqtt.publish(MQTT_UPGRADE_STATUS_TOPIC, MQTT_QOS, false, "No updates");
+            mqtt.publish(topic, MQTT_QOS, false, "No updates");
 
-#if defined(DEBUG)
+#if defined(DEBUG_ENABLED)
             Serial.println("[OTA] HTTP update: no updates");
 #endif
             break;
 
         case HTTP_UPDATE_OK:
-            mqtt.publish(MQTT_UPGRADE_STATUS_TOPIC, MQTT_QOS, false, "OK");
+            mqtt.publish(topic, MQTT_QOS, false, "OK");
 
-#if defined(DEBUG)
+#if defined(DEBUG_ENABLED)
             Serial.println("[OTA] HTTP update: OK");
 #endif
 

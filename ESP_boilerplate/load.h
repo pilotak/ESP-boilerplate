@@ -1,9 +1,9 @@
 // wifi.h
-#include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
-#include <ESP8266httpUpdate.h>
+#include <ESPAsync_WiFiManager_Lite.h>
+#include "./params.h"
 #include <ArduinoJson.h>
 
+ESPAsync_WiFiManager_Lite *wifiManager;
 WiFiEventHandler wifiConnectHandler;
 WiFiEventHandler wifiDisconnectHandler;
 
@@ -13,11 +13,14 @@ WiFiEventHandler wifiDisconnectHandler;
 
 AsyncMqttClient mqtt;
 Ticker mqttReconnectTimer;
+char will[40] = {0}; // has to be global variable
+char will_topic[64] = {0}; // has to be global variable
 
 void connectToMqtt();
 
 // ota.h
 #if defined(HTTP_OTA)
+    #include <ESP8266httpUpdate.h>
     #include <ESP8266HTTPClient.h>
     bool do_http_update = false;
     char http_ota_url[100];
