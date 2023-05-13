@@ -28,9 +28,11 @@ void connectToMqtt();
     #if defined(ESP8266)
         #include <ESP8266httpUpdate.h>
         #include <ESP8266HTTPClient.h>
+        #define updater ESPhttpUpdate
     #else
         #include <HTTPClient.h>
         #include <HTTPUpdate.h>
+        #define updater httpUpdate
     #endif
     bool do_http_update = false;
     char http_ota_url[100];

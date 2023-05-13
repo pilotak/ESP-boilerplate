@@ -78,20 +78,20 @@ void httpOtaUpdate() {
     Serial.println(http_ota_url);
 #endif
 
-    httpUpdate.rebootOnUpdate(false);
-    t_httpUpdate_return ret = httpUpdate.update(client, http_ota_url, FW_VERSION);
+    updater.rebootOnUpdate(false);
+    t_httpUpdate_return ret = updater.update(client, http_ota_url, FW_VERSION);
 
     switch (ret) {
         case HTTP_UPDATE_FAILED:
             ota_in_progess = false;
 
-            len = snprintf(msg, sizeof(msg), "%s", httpUpdate.getLastErrorString().c_str());
+            len = snprintf(msg, sizeof(msg), "%s", updater.getLastErrorString().c_str());
 
             mqtt.publish(topic, MQTT_QOS, false, msg, len);
 
 #if defined(DEBUG_ENABLED)
-            Serial.printf("[OTA] HTTP update failed: (%d): %s\r\n", httpUpdate.getLastError(),
-                          httpUpdate.getLastErrorString().c_str());
+            Serial.printf("[OTA] HTTP update failed: (%d): %s\r\n", updater.getLastError(),
+                          updater.getLastErrorString().c_str());
 #endif
             break;
 
