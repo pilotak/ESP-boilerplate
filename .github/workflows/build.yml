@@ -2,13 +2,19 @@ name: build
 
 on:
   push:
+    branches:
+      - master
 
   pull_request:
     branches:
       - "*"
 
 jobs:
-  platformio-build:
+  build:
+    strategy:
+      matrix:
+        board: ["ESP8266", "ESP32"]
+
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -23,10 +29,7 @@ jobs:
         run: |
           pip install --upgrade platformio
 
-      - name: Compile ESP8266
+      - name: Compile ${{ matrix.board }}
         run: |
-          pio run -e ESP8266
+          pio run -e ${{ matrix.board }}
 
-      - name: Compile ESP32
-        run: |
-          pio run ESP32
