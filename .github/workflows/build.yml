@@ -13,7 +13,7 @@ jobs:
   build:
     strategy:
       matrix:
-        board: ["ESP8266", "ESP32"]
+        board: ["ESP8266", "ESP32", "ESP32-C3"]
 
     runs-on: ubuntu-latest
     steps:
