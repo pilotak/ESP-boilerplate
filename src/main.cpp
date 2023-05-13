@@ -18,9 +18,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#include <Arduino.h>
 #include "const.h"
 #include "load.h"
-#include "wifi.h"
+#include "manager.h"
 #include "mqtt.h"
 #include "ota.h"
 #include "button.h"
@@ -47,9 +48,15 @@ void setup() {
 
 void loop() {
     wifiManager->run();
+
+#if defined(ARDUINO_OTA)
     otaLoop();
+#endif
+
+#if defined(ARDUINO_OTA)
 
     if (!ota_in_progess) {
+#endif
         buttonLoop();
 
         if (WiFi.isConnected()) {
@@ -57,13 +64,17 @@ void loop() {
 
             // call here custom loop, ie. of sensors
         }
+
+#if defined(ARDUINO_OTA)
     }
+
+#endif
 
 #if defined(HTTP_OTA)
 
     if (do_http_update) {
         do_http_update = false;
-        httpUpdate();
+        httpOtaUpdate();
     }
 
 #endif

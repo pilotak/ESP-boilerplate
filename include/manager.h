@@ -14,7 +14,7 @@ uint8_t getRSSIasQuality(int RSSI) {
     return quality;
 }
 
-void onWifiConnect(const WiFiEventStationModeGotIP &event) {
+void onWifiConnect() {
 #if defined(DEBUG_ENABLED)
     Serial.println("[WIFI] Connected");
     Serial.print("[WIFI] Local IP: ");
@@ -24,7 +24,7 @@ void onWifiConnect(const WiFiEventStationModeGotIP &event) {
     connectToMqtt();
 }
 
-void onWifiDisconnect(const WiFiEventStationModeDisconnected &event) {
+void onWifiDisconnect() {
 #if defined(DEBUG_ENABLED)
     Serial.println("[WIFI] Disconnected");
 #endif
@@ -32,7 +32,15 @@ void onWifiDisconnect(const WiFiEventStationModeDisconnected &event) {
 }
 
 void wifiSetup() {
-    wifiConnectHandler = WiFi.onStationModeGotIP(onWifiConnect);
+#if defined(ESP8266)
+    wifiConnectHandler = WiFi.onStationModeGotIP([](const WiFiEventStationModeGotIP & event) {
+        onWifiConnect();
+    });
+#else
+    WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info){
+        onWifiConnect();
+    }, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_GOT_IP);
+#endif
 
     String AP_SSID = CONFIG_PORTAL_SSID;
     String AP_PWD  = CONFIG_PORTAL_PWD;
@@ -40,5 +48,13 @@ void wifiSetup() {
     wifiManager->setConfigPortal(AP_SSID, AP_PWD);
     wifiManager->begin();
 
-    wifiDisconnectHandler = WiFi.onStationModeDisconnected(onWifiDisconnect);
+#if defined(ESP8266)
+    wifiDisconnectHandler = WiFi.onStationModeDisconnected([](const WiFiEventStationModeDisconnected & event) {
+        onWifiDisconnect();
+    });
+#else
+    WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info){
+        onWifiDisconnect();
+    }, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+#endif
 }

@@ -63,14 +63,13 @@ void otaLoop() {
 #endif
 
 #if defined(HTTP_OTA)
-void httpUpdate() {
+void httpOtaUpdate() {
     char msg[127];
     char topic[64] = {0};
     uint32_t len = 0;
     ota_in_progess = true;
     WiFiClient client;
 
-    ESPhttpUpdate.rebootOnUpdate(false);
     snprintf(topic, sizeof(topic), "%s/%s/%s", wifiManager->getBoardName().c_str(), MQTT_UPGRADE_TOPIC,
              MQTT_UPGRADE_STATUS_TOPIC);
 
@@ -79,19 +78,20 @@ void httpUpdate() {
     Serial.println(http_ota_url);
 #endif
 
-    t_httpUpdate_return ret = ESPhttpUpdate.update(client, http_ota_url, FW_VERSION);
+    httpUpdate.rebootOnUpdate(false);
+    t_httpUpdate_return ret = httpUpdate.update(client, http_ota_url, FW_VERSION);
 
     switch (ret) {
         case HTTP_UPDATE_FAILED:
             ota_in_progess = false;
 
-            len = snprintf(msg, sizeof(msg), "%s", ESPhttpUpdate.getLastErrorString().c_str());
+            len = snprintf(msg, sizeof(msg), "%s", httpUpdate.getLastErrorString().c_str());
 
             mqtt.publish(topic, MQTT_QOS, false, msg, len);
 
 #if defined(DEBUG_ENABLED)
-            Serial.printf("[OTA] HTTP update failed: (%d): %s\r\n", ESPhttpUpdate.getLastError(),
-                          ESPhttpUpdate.getLastErrorString().c_str());
+            Serial.printf("[OTA] HTTP update failed: (%d): %s\r\n", httpUpdate.getLastError(),
+                          httpUpdate.getLastErrorString().c_str());
 #endif
             break;
 

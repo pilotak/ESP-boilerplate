@@ -98,20 +98,27 @@ void onMqttConnect(bool sessionPresent) {
 }
 
 void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
-    if (!ota_in_progess) {
 #if defined(DEBUG_ENABLED)
 
-        if ((int8_t)reason != 0) {
-            Serial.print("[MQTT] Disconnected, rc=");
-            Serial.println((int8_t)reason);
-        }
+    if ((int8_t)reason != 0) {
+        Serial.print("[MQTT] Disconnected, rc=");
+        Serial.println((int8_t)reason);
+    }
 
+#endif
+#if defined(ARDUINO_OTA)
+
+    if (!ota_in_progess) {
 #endif
 
         if (WiFi.isConnected()) {
             mqttReconnectTimer.once(2, connectToMqtt);
         }
+
+#if defined(ARDUINO_OTA)
     }
+
+#endif
 }
 
 void mqttSetup() {
@@ -143,12 +150,19 @@ void mqttSetup() {
 
 void mqttLoop() {
     static uint32_t last_status = 0;
+#if defined(ARDUINO_OTA)
 
     if (!ota_in_progess) {
+#endif
+
         if ((millis() - last_status) >= MQTT_STATUS_INTERVAL) {
             last_status = millis();
 
             sendStatus();
         }
+
+#if defined(ARDUINO_OTA)
     }
+
+#endif
 }

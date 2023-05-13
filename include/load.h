@@ -4,8 +4,13 @@
 #include <ArduinoJson.h>
 
 ESPAsync_WiFiManager_Lite *wifiManager;
-WiFiEventHandler wifiConnectHandler;
-WiFiEventHandler wifiDisconnectHandler;
+
+#if defined(ESP8266)
+    WiFiEventHandler wifiConnectHandler;
+    WiFiEventHandler wifiDisconnectHandler;
+#else
+    #include <WiFi.h>
+#endif
 
 // mqtt.h
 #include <AsyncMqttClient.h>
@@ -20,12 +25,17 @@ void connectToMqtt();
 
 // ota.h
 #if defined(HTTP_OTA)
-    #include <ESP8266httpUpdate.h>
-    #include <ESP8266HTTPClient.h>
+    #if defined(ESP8266)
+        #include <ESP8266httpUpdate.h>
+        #include <ESP8266HTTPClient.h>
+    #else
+        #include <HTTPClient.h>
+        #include <HTTPUpdate.h>
+    #endif
     bool do_http_update = false;
     char http_ota_url[100];
 
-    void httpUpdate(const char *url);
+    void httpOtaUpdate();
 #endif
 
 #if defined(ARDUINO_OTA)

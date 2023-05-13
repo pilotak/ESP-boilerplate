@@ -18,8 +18,5 @@
 #define MQTT_STATUS_ALIVE 1
 #define MQTT_STATUS_DEAD 0
 
-#define BUTTON_PIN D3
+#define BUTTON_PIN 3
 #define LONG_PRESS 1000  // ms
-
-#define SDA_PIN SDA
-#define SCL_PIN SCL
